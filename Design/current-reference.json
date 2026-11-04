@@ -1,0 +1,229 @@
+{
+  "date": "2026-09-30",
+  "fileKey": "GhrvxUS2ZNhR30qS5GcRi5",
+  "page": "24:81",
+  "dimensions": {
+    "columns": 32,
+    "rows": 8
+  },
+  "adaptations": [
+    "Police système Apple demandée par l’utilisateur",
+    "Connexion et confirmation explicitement virtuelles en attente du firmware"
+  ],
+  "nodes": [
+    {
+      "nodeId": "32:86",
+      "labels": [
+        "APERÇU",
+        "32 × 8",
+        "Auto",
+        "Hors ligne",
+        "9:41",
+        "luma",
+        "Connecte ton panneau",
+        "Allume-le et active le Bluetooth.",
+        "Sans compte · Bluetooth"
+      ],
+      "buttons": [
+        "Connecter",
+        "Mon panneau n’apparaît pas"
+      ]
+    },
+    {
+      "nodeId": "32:156",
+      "labels": [
+        "9:41",
+        "luma",
+        "Ton message",
+        "Écris, puis affiche.",
+        "APERÇU",
+        "32 × 8",
+        "Auto",
+        "Ton message",
+        "5/60",
+        "MERCI",
+        "Au-delà de 5 caractères, le texte défile.",
+        "Couleur",
+        "Citron",
+        "Favoris",
+        "MERCI",
+        "Message",
+        "Icônes",
+        "Panneau"
+      ],
+      "buttons": [
+        "MERCI",
+        "À BIENTÔT",
+        "→  Afficher sur le panneau",
+        "Effacer le panneau"
+      ]
+    },
+    {
+      "nodeId": "32:279",
+      "labels": [
+        "9:41",
+        "luma",
+        "Icônes",
+        "Choisis une icône.",
+        "APERÇU",
+        "32 × 8",
+        "Auto",
+        "Choisir une icône",
+        "Sourire",
+        "Sourire",
+        "Cœur",
+        "Flèche",
+        "Soleil",
+        "Clin d’œil",
+        "Pause",
+        "Icônes en 8 × 8 pixels.",
+        "Couleur",
+        "Citron",
+        "Message",
+        "Icônes",
+        "Panneau"
+      ],
+      "buttons": [
+        "＋ Créer un dessin",
+        "→  Afficher sur le panneau",
+        "Effacer le panneau"
+      ]
+    },
+    {
+      "nodeId": "32:509",
+      "labels": [
+        "Auto",
+        "Fixe",
+        "Toujours",
+        "Luminosité",
+        "40 %",
+        "Discrète",
+        "Intense",
+        "9:41",
+        "luma",
+        "Réglages",
+        "Ajuste ton panneau.",
+        "Luma",
+        "32 × 8 · 256 LED",
+        "Défilement",
+        "Auto : défile au-delà de 5 caractères.",
+        "Vitesse",
+        "Normale",
+        "Panneau allumé",
+        "Message",
+        "Icônes",
+        "Panneau"
+      ],
+      "buttons": [
+        "Lente",
+        "Normale",
+        "Rapide",
+        "✓  Appliquer les réglages",
+        "Déconnecter"
+      ]
+    },
+    {
+      "nodeId": "32:954",
+      "labels": [
+        "Hors ligne",
+        "9:41",
+        "luma",
+        "Connexion…",
+        "Connexion au panneau en cours.",
+        "Luma"
+      ],
+      "buttons": []
+    },
+    {
+      "nodeId": "32:1016",
+      "labels": [
+        "Hors ligne",
+        "9:41",
+        "luma",
+        "Connexion perdue",
+        "Vérifie que le panneau est allumé et reste à proximité. Ton message est gardé.",
+        "Message sauvegardé",
+        "Reconnecte-toi pour continuer."
+      ],
+      "buttons": [
+        "↻  Reconnecter"
+      ]
+    },
+    {
+      "nodeId": "32:1110",
+      "labels": [
+        "Message affiché",
+        "Le panneau est à jour."
+      ],
+      "buttons": [
+        "OK"
+      ]
+    },
+    {
+      "nodeId": "32:1117",
+      "labels": [
+        "Effacer le panneau ?",
+        "Le panneau s’éteint. Ton message et tes favoris sont gardés."
+      ],
+      "buttons": [
+        "Effacer le panneau",
+        "Annuler"
+      ]
+    },
+    {
+      "nodeId": "32:1126",
+      "labels": [
+        "Déconnecter le panneau ?",
+        "Ton contenu reste affiché."
+      ],
+      "buttons": [
+        "Déconnecter",
+        "Annuler"
+      ]
+    },
+    {
+      "nodeId": "32:1135",
+      "labels": [
+        "Panneau introuvable ?",
+        "Allume ton panneau et active le Bluetooth."
+      ],
+      "buttons": [
+        "Relancer la recherche",
+        "Fermer"
+      ]
+    },
+    {
+      "nodeId": "80:509",
+      "labels": [
+        "9:41",
+        "luma",
+        "Ton dessin",
+        "Touche les pixels pour dessiner.",
+        "APERÇU",
+        "32 × 8",
+        "Grille 8 × 8",
+        "Couleur",
+        "Citron",
+        "Message",
+        "Icônes",
+        "Panneau"
+      ],
+      "buttons": [
+        "Retour aux icônes",
+        "→  Afficher sur le panneau",
+        "Effacer le dessin"
+      ]
+    },
+    {
+      "nodeId": "80:500",
+      "labels": [
+        "Effacer le dessin ?",
+        "La grille sera vidée."
+      ],
+      "buttons": [
+        "Effacer le dessin",
+        "Annuler"
+      ]
+    }
+  ]
+}
