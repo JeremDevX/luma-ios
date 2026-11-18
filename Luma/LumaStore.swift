@@ -9,6 +9,7 @@ final class LumaStore {
     var sheet: LumaSheet?
     var draft: Draft { didSet { save() } }
     var storageError: String?
+    let transcription = LiveTranscription()
     private(set) var obdActive = false
     private(set) var obdRPM: Int?
     private(set) var obdStatus = "Arrêté"
@@ -100,6 +101,7 @@ final class LumaStore {
             guard let self, self.session != .selection else { return }
             self.stopVisualizer(sendCommand: false)
             self.stopOBD(sendCommand: false)
+            self.stopTranscription(sendCommand: false)
             self.storageError = message
             self.session = .offline(panel)
         }
@@ -114,6 +116,7 @@ final class LumaStore {
               (1000...12000).contains(maximum) else { storageError = "Adresse ou régime maximal invalide."; return }
         guard bluetooth.supportsLive else { storageError = "Mets le programme du panneau à jour."; return }
         stopVisualizer()
+        stopTranscription()
         obdActive = true; obdRPM = nil; obdMaximum = maximum; obdStatus = "Préparation…"
         obd.onStatus = { [weak self] status in self?.obdStatus = status }
         obd.onRPM = { [weak self] rpm in
@@ -129,7 +132,7 @@ final class LumaStore {
             guard let self, self.obdActive else { return }
             self.stopOBD(); self.obdStatus = message
         }
-        bluetooth.send([Data([0x61, 1])]) { [weak self] success in
+        bluetooth.send([PixelRenderer.displaySettingsPacket(draft), Data([0x61, 1])]) { [weak self] success in
             guard let self, self.obdActive else { return }
             if success { self.obd.connect(host: host) }
             else { self.stopOBD(sendCommand: false); self.obdStatus = "Activation Bluetooth impossible." }
@@ -162,6 +165,7 @@ final class LumaStore {
             return
         }
         stopOBD()
+        stopTranscription()
         visualizerRequested = true
         visualizerStarting = true
         let granted = await AVAudioApplication.requestRecordPermission()
@@ -171,7 +175,7 @@ final class LumaStore {
             storageError = "Autorise le microphone dans Réglages pour utiliser le visualiseur."
             return
         }
-        bluetooth.send([Data([0x51, 1])]) { [weak self] success in
+        bluetooth.send([PixelRenderer.displaySettingsPacket(draft), Data([0x51, 1])]) { [weak self] success in
             guard let self, self.visualizerRequested else { return }
             self.visualizerStarting = false
             guard success else {
@@ -207,6 +211,26 @@ final class LumaStore {
         if sendCommand && isReady { bluetooth.send([Data([0x51, 0])]) { _ in } }
     }
 
+    func startTranscription() async {
+        guard isReady, !transcription.isRunning else { return }
+        stopVisualizer()
+        stopOBD()
+        await transcription.start { [weak self] message, completion in
+            guard let self, self.isReady else { completion(false); return }
+            let packets = [PixelRenderer.displaySettingsPacket(self.draft), Data([0x46, 0]), Data([0x47, 0])]
+                + PixelRenderer.scrollPackets(message, speed: .fast)
+            self.bluetooth.send(packets, completion: completion)
+        } onClear: { [weak self] in
+            guard let self, self.isReady else { return }
+            let empty = Array(repeating: Array(repeating: false, count: 32), count: 8)
+            self.bluetooth.send(PixelRenderer.framePackets(empty)) { _ in }
+        }
+    }
+
+    func stopTranscription(sendCommand: Bool = true) {
+        transcription.stop(clearPanel: sendCommand && isReady)
+    }
+
     private func syncClock() {
         let now = Date()
         let seconds = Int64(now.timeIntervalSince1970) + Int64(TimeZone.current.secondsFromGMT(for: now))
@@ -222,12 +246,16 @@ final class LumaStore {
         guard (1...9).contains(mode), (0...5999).contains(seconds), mode != 3 || seconds > 0 else { return }
         stopVisualizer()
         stopOBD()
+        stopTranscription()
         let value = UInt32(seconds)
-        sendFeature(Data([0x40, UInt8(mode), UInt8(value & 255), UInt8((value >> 8) & 255),
-                          UInt8((value >> 16) & 255), UInt8((value >> 24) & 255)]))
+        sendFeature([
+            PixelRenderer.displaySettingsPacket(draft),
+            Data([0x40, UInt8(mode), UInt8(value & 255), UInt8((value >> 8) & 255),
+                  UInt8((value >> 16) & 255), UInt8((value >> 24) & 255)])
+        ])
     }
 
-    func controlMode(_ action: UInt8) { sendFeature(Data([0x42, action])) }
+    func controlMode(_ action: UInt8) { sendFeature([Data([0x42, action])]) }
 
     func scheduleMessage(index: Int, hour: Int, minute: Int, text: String) {
         let normalized = PixelRenderer.normalize(text)
@@ -239,12 +267,12 @@ final class LumaStore {
         }
         var data = Data([0x44, UInt8(index), UInt8(hour), UInt8(minute)])
         data.append(contentsOf: normalized.utf8)
-        sendFeature(data)
+        sendFeature([data])
     }
 
-    private func sendFeature(_ data: Data) {
+    private func sendFeature(_ packets: [Data]) {
         guard isReady else { storageError = "Connecte le panneau avant d’envoyer la commande."; return }
-        bluetooth.send([data]) { [weak self] success in
+        bluetooth.send(packets) { [weak self] success in
             if success { self?.sheet = .feature }
             else { self?.storageError = "Envoi Bluetooth impossible." }
         }
@@ -252,8 +280,7 @@ final class LumaStore {
 
     private func sendCurrent(completion: @escaping (Bool) -> Void) {
         let content = displayedDraft ?? draft
-        var packets = [Data([0x0A, UInt8(content.brightness == 0 ? 0 : max(1, min(15, Int((content.brightness * 15 / 100).rounded()))))])]
-        packets.append(Data([0x46, 0]))
+        var packets = [PixelRenderer.displaySettingsPacket(content), Data([0x46, 0])]
         let validMessage = content.isOn && !displayedIcon && PixelRenderer.validationError(content.message) == nil
         if validMessage && content.scrollMode == .appearance {
             packets.append(contentsOf: PixelRenderer.appearancePackets(content.message, panel: panel, speed: content.speed))
@@ -282,6 +309,7 @@ final class LumaStore {
         guard isReady, tab == .icons || PixelRenderer.validationError(draft.message) == nil else { return }
         stopVisualizer()
         stopOBD()
+        stopTranscription()
         draft.isOn = true
         displayedDraft = draft
         displayedIcon = tab == .icons
@@ -296,6 +324,7 @@ final class LumaStore {
         guard isReady else { return }
         stopVisualizer()
         stopOBD()
+        stopTranscription()
         if displayedDraft != nil {
             displayedDraft?.brightness = draft.brightness
             displayedDraft?.scrollMode = draft.scrollMode
@@ -311,6 +340,7 @@ final class LumaStore {
     func clear() {
         stopVisualizer()
         stopOBD()
+        stopTranscription()
         draft.isOn = false
         displayedDraft = nil
         displayedDrawing = nil
@@ -321,6 +351,7 @@ final class LumaStore {
     func disconnect() {
         stopVisualizer()
         stopOBD()
+        stopTranscription()
         session = .selection
         bluetooth.stop()
         tab = .message

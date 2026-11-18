@@ -28,7 +28,7 @@ struct RootView: View {
                 }
             }
         }.background(Color("bg")).foregroundStyle(Color("text"))
-            .onChange(of: scenePhase) { if scenePhase == .background { store.stopVisualizer(); store.stopOBD() } }
+            .onChange(of: scenePhase) { if scenePhase == .background { store.stopVisualizer(); store.stopOBD(); store.stopTranscription() } }
             .sheet(item: $store.sheet) { sheet in LumaSheetView(store: store, sheet: sheet) }
             .alert("Luma", isPresented: Binding(
                 get: { store.storageError != nil },

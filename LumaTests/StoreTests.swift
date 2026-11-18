@@ -1,8 +1,36 @@
 import XCTest
+import Speech
 @testable import Luma
 
 @MainActor
 final class StoreTests: XCTestCase {
+    func testSpeechAuthorizationCanReturnOnBackgroundQueue() async {
+        let status = await LiveTranscription.speechAuthorization { callback in
+            DispatchQueue.global().async { callback(.authorized) }
+        }
+        XCTAssertEqual(status, .authorized)
+    }
+    func testTranscriptionNormalizesUnsupportedCharactersForThePanel() {
+        XCTAssertEqual(LiveTranscription.clean("l’été"), "L'ÉTÉ")
+        XCTAssertEqual(LiveTranscription.clean("garçon🙂"), "GARÇON")
+        XCTAssertEqual(LiveTranscription.clean("forêt"), "FORÊT")
+        XCTAssertEqual(LiveTranscription.clean(String(repeating: "a", count: 70)).count, 70)
+    }
+    func testTranscriptionKeepsWordsUntilQueueLimitAndGroupsThem() {
+        var queue = Array(repeating: "BONJOUR", count: 50)
+        XCTAssertFalse(LiveTranscription.trimQueue(&queue))
+        let batch = LiveTranscription.takeBatch(&queue)
+        XCTAssertEqual(batch, Array(repeating: "BONJOUR", count: 7).joined(separator: " "))
+        XCTAssertEqual(queue.count, 43)
+        queue = Array(repeating: "BONJOUR", count: 120)
+        XCTAssertTrue(LiveTranscription.trimQueue(&queue))
+        XCTAssertLessThanOrEqual(queue.joined(separator: " ").count, 800)
+    }
+    func testTranscriptionKeepsEarlierRecognizedPhrases() {
+        XCTAssertEqual(LiveTranscription.transcript(history: "TEST", phrase: "1212"), "TEST 1212")
+        XCTAssertEqual(LiveTranscription.transcript(history: "TEST", phrase: ""), "TEST")
+        XCTAssertEqual(LiveTranscription.transcript(history: String(repeating: "A", count: 500), phrase: "B").count, 500)
+    }
     private var defaults: UserDefaults!
     private var suite: String!
     override func setUp() async throws {

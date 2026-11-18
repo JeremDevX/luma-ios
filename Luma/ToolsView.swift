@@ -22,7 +22,7 @@ struct ToolsView: View {
                     .font(.caption).foregroundStyle(Color("muted"))
                 PixelGrid(grid: (0..<8).map { row in
                     store.visualizerLevels.map { Int($0) > 7 - row }
-                }, color: Color("accent"))
+                }, color: Color(store.draft.color.asset))
                     .aspectRatio(4, contentMode: .fit).padding(8).background(.black, in: RoundedRectangle(cornerRadius: 12))
                     .accessibilityLabel("Niveaux sonores")
                 if store.visualizerActive {
@@ -33,6 +33,21 @@ struct ToolsView: View {
                     }.buttonStyle(PrimaryButton()).disabled(store.visualizerStarting)
                 }
                 Text("Laisse l’app ouverte et le panneau connecté.")
+                    .font(.caption).foregroundStyle(Color("muted"))
+            }
+            section("Transcription en direct") {
+                Text("Les paroles captées par le micro défilent sur le panneau. La reconnaissance reste sur l’iPhone.")
+                    .font(.caption).foregroundStyle(Color("muted"))
+                Text(store.transcription.text.isEmpty ? "Les paroles reconnues apparaîtront ici." : store.transcription.text)
+                    .font(.body).frame(maxWidth: .infinity, alignment: .leading).padding(12).lumaCard(radius: 10)
+                Text(store.transcription.status).font(.caption).foregroundStyle(Color("muted"))
+                if store.transcription.isRunning {
+                    Button("Arrêter la transcription") { store.stopTranscription() }.buttonStyle(PrimaryButton())
+                } else {
+                    Button("Démarrer la transcription") { Task { await store.startTranscription() } }
+                        .buttonStyle(PrimaryButton()).disabled(!store.isReady)
+                }
+                Text("Attends « À l’écoute » pour parler et garde l’app ouverte. Si tu parles trop vite, l’affichage peut prendre du retard.")
                     .font(.caption).foregroundStyle(Color("muted"))
             }
             section("Compte-tours OBD") {
@@ -84,11 +99,13 @@ struct ToolsView: View {
                     .font(.caption).foregroundStyle(Color("muted"))
             }
         }
-        .onDisappear { store.stopVisualizer(); store.stopOBD() }
-        .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.didBecomeInactiveNotification)) { notification in
+        .onDisappear { store.stopVisualizer(); store.stopOBD(); store.stopTranscription() }
+        .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.didBecomeInactiveNotification)
+            .receive(on: RunLoop.main)) { notification in
             if let context = notification.userInfo?[AVAudioSession.deactivationContextKey] as? AVAudioSession.DeactivationContext,
                context.source == .app { return }
             store.stopVisualizer()
+            store.stopTranscription()
         }
     }
 
@@ -151,6 +168,7 @@ extension LumaStore {
         guard isReady else { storageError = "Connecte le panneau avant d’envoyer la météo."; return }
         stopVisualizer()
         stopOBD()
+        stopTranscription()
         guard let url = URL(string: "https://api.open-meteo.com/v1/forecast?latitude=45.1885&longitude=5.7245&current=temperature_2m,weather_code") else { return }
         do {
             let (data, response) = try await URLSession.shared.data(from: url)

@@ -40,7 +40,6 @@ struct SettingsView: View {
                 }.pickerStyle(.segmented)
             }
             Toggle("Panneau allumé", isOn: $store.draft.isOn).font(.footnote.bold())
-            Text("Le MAX7219 est monochrome : la couleur choisie concerne uniquement l’aperçu.").font(.footnote).foregroundStyle(Color("muted"))
         }.safeAreaInset(edge: .bottom, spacing: 0) { EditorActions(store: store, settings: true) }
     }
 }

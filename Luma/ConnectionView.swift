@@ -49,7 +49,7 @@ struct ConnectionView: View {
 
 
 @MainActor final class LumaBluetooth: NSObject, @preconcurrency CBCentralManagerDelegate, @preconcurrency CBPeripheralDelegate {
-    private let service = CBUUID(string: "7A2F0007-CB86-4B6D-8F78-38D24B9E1940")
+    private let service = CBUUID(string: "7A2F0008-CB86-4B6D-8F78-38D24B9E1940")
     private let command = CBUUID(string: "7A2F0002-CB86-4B6D-8F78-38D24B9E1940")
     private var central: CBCentralManager?
     private var peripheral: CBPeripheral?

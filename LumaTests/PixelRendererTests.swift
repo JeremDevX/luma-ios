@@ -2,6 +2,18 @@ import XCTest
 @testable import Luma
 
 final class PixelRendererTests: XCTestCase {
+    func testDisplaySettingsPacketIncludesBrightnessAndRGB() {
+        var draft = Draft()
+        XCTAssertEqual(Array(PixelRenderer.displaySettingsPacket(draft)), [0x0A, 40, 217, 255, 133])
+
+        draft.brightness = 100
+        draft.color = .blue
+        XCTAssertEqual(Array(PixelRenderer.displaySettingsPacket(draft)), [0x0A, 100, 130, 200, 255])
+
+        draft.brightness = 0
+        XCTAssertEqual(Array(PixelRenderer.displaySettingsPacket(draft)), [0x0A, 0, 130, 200, 255])
+    }
+
     func testSpectrumRespondsToFrequencyAndSilence() throws {
         let low = try XCTUnwrap(SpectrumAnalyzer())
         XCTAssertEqual(low.analyze(Array(repeating: 0, count: 512), sampleRate: 48000), Array(repeating: 0, count: 32))

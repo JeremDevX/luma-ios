@@ -40,6 +40,16 @@ enum LEDColor: String, Codable, CaseIterable, Identifiable {
         case .lavender: "purple"
         }
     }
+    var rgb: (red: UInt8, green: UInt8, blue: UInt8) {
+        switch self {
+        case .citron: (217, 255, 133)
+        case .white: (240, 245, 237)
+        case .amber: (255, 198, 133)
+        case .coral: (255, 118, 105)
+        case .blue: (130, 200, 255)
+        case .lavender: (186, 172, 255)
+        }
+    }
     var swatch: String {
         switch self {
         case .citron: "53a51"

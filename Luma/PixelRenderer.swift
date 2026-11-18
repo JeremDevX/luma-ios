@@ -97,6 +97,11 @@ enum PixelRenderer {
         return packets
     }
 
+    static func displaySettingsPacket(_ draft: Draft) -> Data {
+        let rgb = draft.color.rgb
+        return Data([0x0A, UInt8(draft.brightness.rounded()), rgb.red, rgb.green, rgb.blue])
+    }
+
     static func framePackets(_ grid: [[Bool]]) -> [Data] {
         (0..<2).map { part in
             var packet: [UInt8] = [UInt8(0x20 + part)]

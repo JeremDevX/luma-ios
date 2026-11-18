@@ -24,7 +24,7 @@ struct OBDControlsView: View {
                 Spacer()
                 Text(store.obdStatus).font(.caption).foregroundStyle(Color("muted"))
             }
-            PixelGrid(grid: (0..<8).map { _ in (0..<32).map { $0 < columns } }, color: Color("accent"))
+            PixelGrid(grid: (0..<8).map { _ in (0..<32).map { $0 < columns } }, color: Color(store.draft.color.asset))
                 .aspectRatio(4, contentMode: .fit).padding(8).background(.black, in: RoundedRectangle(cornerRadius: 12))
                 .accessibilityLabel("Compte-tours : \(store.obdRPM.map(String.init) ?? "aucune donnée") tours par minute")
             if store.obdActive {
